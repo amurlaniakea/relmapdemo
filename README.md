@@ -1,4 +1,4 @@
-# relmap
+# relmap 🌌
 
 Navegación relativista y mapa del espacio-tiempo. **Experimental.**
 
