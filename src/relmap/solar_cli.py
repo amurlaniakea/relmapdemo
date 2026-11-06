@@ -1,10 +1,10 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 Pedro Sordo Martínez
 """relmap-solar: el Sistema Solar en una fecha, con rayos rasantes y mapa 3D."""
+
 from __future__ import annotations
 
 import argparse
-import sys
 from datetime import datetime, timezone
 
 import numpy as np
@@ -22,16 +22,33 @@ def _date(s: str) -> datetime:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="relmap-solar", description="Sistema Solar en campo débil")
-    ap.add_argument("--date", type=_date, default=None, help="fecha ISO, p. ej. 2026-11-05 (por defecto: ahora UTC)")
+    ap.add_argument(
+        "--date",
+        type=_date,
+        default=None,
+        help="fecha ISO, p. ej. 2026-11-05 (por defecto: ahora UTC)",
+    )
     ap.add_argument("--include", nargs="*", help="solo estos cuerpos (p. ej. Sol Tierra Luna)")
-    ap.add_argument("--b-factor", type=float, default=2.0, help="parámetro de impacto de los rayos, en radios del cuerpo")
-    ap.add_argument("--rays", help="YAML/JSON con tus propios rayos (marco eclíptico J2000 heliocéntrico)")
+    ap.add_argument(
+        "--b-factor",
+        type=float,
+        default=2.0,
+        help="parámetro de impacto de los rayos, en radios del cuerpo",
+    )
+    ap.add_argument(
+        "--rays",
+        help="YAML/JSON con tus propios rayos (marco eclíptico J2000 heliocéntrico)",
+    )
     ap.add_argument("--mc", type=int, default=0, help="muestras Monte Carlo por rayo")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="sistema_solar.html")
     ap.add_argument("--dump", help="guarda la escena generada en este YAML")
     ap.add_argument("--exaggerate", default="auto")
-    ap.add_argument("--offline", action="store_true", help="incrusta plotly.js en el HTML (funciona sin internet, ~4 MB)")
+    ap.add_argument(
+        "--offline",
+        action="store_true",
+        help="incrusta plotly.js en el HTML (funciona sin internet, ~4 MB)",
+    )
     a = ap.parse_args(argv)
 
     when = a.date or datetime.now(timezone.utc)
@@ -43,6 +60,7 @@ def main(argv=None) -> int:
 
     if a.dump:
         import yaml
+
         with open(a.dump, "w", encoding="utf-8") as f:
             yaml.safe_dump(scene_to_dict(scene), f, sort_keys=False, allow_unicode=True)
         print(f"Escena guardada en {a.dump}\n")
@@ -67,16 +85,25 @@ def main(argv=None) -> int:
             if ray.name.startswith(f"rasante {b.name} "):
                 others = [x for x in bodies if x is not b]
                 r2 = trace_ray(others, ray.origin, ray.direction, ray.length)
-                d = np.degrees(np.arctan2(np.linalg.norm(np.cross(final_dir(r), final_dir(r2))),
-                                          float(np.dot(final_dir(r), final_dir(r2))))) * 3600
+                d = (
+                    np.degrees(
+                        np.arctan2(
+                            np.linalg.norm(np.cross(final_dir(r), final_dir(r2))),
+                            float(np.dot(final_dir(r), final_dir(r2))),
+                        )
+                    )
+                    * 3600
+                )
                 own = f"{d:11.4g}"
                 ref = f"{np.degrees(4 * b.mass_geo / (a.b_factor * b.radius)) * 3600:12.4g}"
         print(f"{ray.name:34s} {r.deflection_arcsec:11.4g} {own:>11s} {ref:>12s} {r.delay_s * 1e6:13.5g}")
         if a.mc > 0:
             s_ = monte_carlo(bodies, ray, n=a.mc, seed=a.seed)
             d = s_.deflection_arcsec
-            print(f"{'':34s} MC n={s_.n}: mediana {d['p50']:.4g}″, 90%: {d['p5']:.4g}–{d['p95']:.4g}″"
-                  + (f", {s_.hits} impactos" if s_.hits else ""))
+            print(
+                f"{'':34s} MC n={s_.n}: mediana {d['p50']:.4g}″, 90%: {d['p5']:.4g}–{d['p95']:.4g}″"
+                + (f", {s_.hits} impactos" if s_.hits else "")
+            )
 
     print("\nDilatación temporal en la superficie (1 − dτ/dt):")
     for b in bodies:
@@ -84,8 +111,15 @@ def main(argv=None) -> int:
             f = time_dilation(b.position + [b.radius, 0.0, 0.0], bodies)
             print(f"  {b.name:10s} {1 - f:.4e}")
     orbits = [(b.name, p) for b in bodies if (p := orbit_path(b.name, when)) is not None]
-    build_scene_map(scene, results, exaggerate=a.exaggerate, out_html=a.out, orbits=orbits,
-                    offline=a.offline, title=f"Sistema Solar {when:%Y-%m-%d}")
+    build_scene_map(
+        scene,
+        results,
+        exaggerate=a.exaggerate,
+        out_html=a.out,
+        orbits=orbits,
+        offline=a.offline,
+        title=f"Sistema Solar {when:%Y-%m-%d}",
+    )
     print(f"\nGenerado {a.out}")
     return 0
 

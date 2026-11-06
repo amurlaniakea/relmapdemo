@@ -10,6 +10,7 @@
   números físicos están en la tabla de la línea de comandos. La curvatura de los rayos
   (microradianes) se dibuja exagerada por un factor K que se indica en la leyenda.
 """
+
 from __future__ import annotations
 
 import json
@@ -21,26 +22,59 @@ import plotly.graph_objects as go
 AU = 1.495978707e11
 SUN_YELLOW = "#FFD60A"
 PALETTE = {
-    "sol": SUN_YELLOW, "sun": SUN_YELLOW,
-    "mercurio": "#A8A29E", "mercury": "#A8A29E",
+    "sol": SUN_YELLOW,
+    "sun": SUN_YELLOW,
+    "mercurio": "#A8A29E",
+    "mercury": "#A8A29E",
     "venus": "#F4A261",
-    "tierra": "#38BDF8", "earth": "#38BDF8",
-    "luna": "#CBD5E1", "moon": "#CBD5E1",
-    "marte": "#EF4444", "mars": "#EF4444",
+    "tierra": "#38BDF8",
+    "earth": "#38BDF8",
+    "luna": "#CBD5E1",
+    "moon": "#CBD5E1",
+    "marte": "#EF4444",
+    "mars": "#EF4444",
     "jupiter": "#C2410C",
-    "saturno": "#D6B88A", "saturn": "#D6B88A",
-    "urano": "#2DD4BF", "uranus": "#2DD4BF",
-    "neptuno": "#6366F1", "neptune": "#6366F1",
+    "saturno": "#D6B88A",
+    "saturn": "#D6B88A",
+    "urano": "#2DD4BF",
+    "uranus": "#2DD4BF",
+    "neptuno": "#6366F1",
+    "neptune": "#6366F1",
 }
-FALLBACK = ["#A78BFA", "#F472B6", "#34D399", "#FB7185", "#60A5FA", "#F97316", "#14B8A6", "#C084FC"]
+FALLBACK = [
+    "#A78BFA",
+    "#F472B6",
+    "#34D399",
+    "#FB7185",
+    "#60A5FA",
+    "#F97316",
+    "#14B8A6",
+    "#C084FC",
+]
 
 THEMES = {
-    "dark": {"bg": "#0b1020", "text": "#e5e7eb", "axis": "#94a3b8", "grid": "rgba(148,163,184,0.30)",
-             "ray": "#f8fafc", "outline": "rgba(0,0,0,0.75)", "menu": "#1e293b", "border": "#475569",
-             "active": "#4338ca"},
-    "light": {"bg": "#f8fafc", "text": "#0f172a", "axis": "#475569", "grid": "rgba(51,65,85,0.55)",
-              "ray": "#0f172a", "outline": "#1f2937", "menu": "#e2e8f0", "border": "#94a3b8",
-              "active": "#c7d2fe"},
+    "dark": {
+        "bg": "#0b1020",
+        "text": "#e5e7eb",
+        "axis": "#94a3b8",
+        "grid": "rgba(148,163,184,0.30)",
+        "ray": "#f8fafc",
+        "outline": "rgba(0,0,0,0.75)",
+        "menu": "#1e293b",
+        "border": "#475569",
+        "active": "#4338ca",
+    },
+    "light": {
+        "bg": "#f8fafc",
+        "text": "#0f172a",
+        "axis": "#475569",
+        "grid": "rgba(51,65,85,0.55)",
+        "ray": "#0f172a",
+        "outline": "#1f2937",
+        "menu": "#e2e8f0",
+        "border": "#94a3b8",
+        "active": "#c7d2fe",
+    },
 }
 
 
@@ -87,8 +121,13 @@ def default_views(bodies, results):
 
     def is_sat(b):
         d_h = np.linalg.norm(b.position - heavy.position)
-        return any(o is not b and o is not heavy and o.mass_kg > 20 * b.mass_kg
-                   and np.linalg.norm(o.position - b.position) < 0.02 * d_h for o in bodies)
+        return any(
+            o is not b
+            and o is not heavy
+            and o.mass_kg > 20 * b.mass_kg
+            and np.linalg.norm(o.position - b.position) < 0.02 * d_h
+            for o in bodies
+        )
 
     cand = [b for b in bodies if b is not heavy and not is_sat(b)]
     if len(cand) >= 4:
@@ -112,7 +151,13 @@ def default_views(bodies, results):
             h = max(60 * R, 1.25 * dn) if dn <= 2000 * R else 60 * R
         else:
             h = 0.02 * hfull
-        views.append({"name": f"Centrado en {b.name}", "center": b.position.astype(float), "h": float(h)})
+        views.append(
+            {
+                "name": f"Centrado en {b.name}",
+                "center": b.position.astype(float),
+                "h": float(h),
+            }
+        )
     return views
 
 
@@ -136,11 +181,18 @@ def _surface_factory(bodies, h):
 
 def _theme_layout(name):
     T = THEMES[name]
-    lay = {"paper_bgcolor": T["bg"], "plot_bgcolor": T["bg"], "font.color": T["text"],
-           "title.font.color": T["text"], "scene.bgcolor": T["bg"],
-           "updatemenus[0].bgcolor": T["menu"], "updatemenus[0].bordercolor": T["border"],
-           "updatemenus[0].font.color": T["text"], "updatemenus[0].activecolor": T["active"],
-           "annotations[0].font.color": T["axis"]}
+    lay = {
+        "paper_bgcolor": T["bg"],
+        "plot_bgcolor": T["bg"],
+        "font.color": T["text"],
+        "title.font.color": T["text"],
+        "scene.bgcolor": T["bg"],
+        "updatemenus[0].bgcolor": T["menu"],
+        "updatemenus[0].bordercolor": T["border"],
+        "updatemenus[0].font.color": T["text"],
+        "updatemenus[0].activecolor": T["active"],
+        "annotations[0].font.color": T["axis"],
+    }
     for ax in "xyz":
         lay[f"scene.{ax}axis.color"] = T["axis"]
         lay[f"scene.{ax}axis.gridcolor"] = T["grid"]
@@ -189,16 +241,24 @@ _JS = r"""
 """
 
 
-def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="relmap — escena",
-                    orbits=None, offline=False):
+def build_scene_map(
+    scene,
+    results,
+    exaggerate="auto",
+    out_html=None,
+    title="relmap — escena",
+    orbits=None,
+    offline=False,
+):
     bodies = list(scene.bodies)
     colors = body_colors(bodies)
     views = default_views(bodies, results)
     dark = THEMES["dark"]
     masses = np.array([b.mass_kg for b in bodies], float)
-    rank = np.argsort(np.argsort(-masses))            # 0 = más masivo
-    sizes = {b.name: (20 if rank[i] == 0 else 8 + 4 * (1 - rank[i] / max(len(bodies) - 1, 1)))
-             for i, b in enumerate(bodies)}
+    rank = np.argsort(np.argsort(-masses))  # 0 = más masivo
+    sizes = {
+        b.name: (20 if rank[i] == 0 else 8 + 4 * (1 - rank[i] / max(len(bodies) - 1, 1))) for i, b in enumerate(bodies)
+    }
 
     # ---- muestras de cada rayo: posiciones (solo para ubicar) y direcciones (precisas) ----
     ray_data = []
@@ -210,7 +270,7 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
         ray_data.append((r, y[:3].T, d, sgrid))
 
     fig = go.Figure()
-    owners = []                                       # vista a la que pertenece cada traza
+    owners = []  # vista a la que pertenece cada traza
     view_meta = []
     for vi, v in enumerate(views):
         c, h = v["center"], v["h"]
@@ -218,7 +278,7 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
         nd = max(0, int(np.ceil(5 - np.log10(h / u))))
         surf, L = _surface_factory(bodies, h)
 
-        def rel(P):                                    # mundo (m) -> vista (unidad)
+        def rel(P):  # mundo (m) -> vista (unidad)
             return np.round((np.asarray(P, float) - c) / u, nd)
 
         def inside(P, margin=1.02):
@@ -230,21 +290,35 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
         t = np.linspace(-h, h, m)
         GX, GY = [], []
         for val in g:
-            GX += list(c[0] + t) + [np.nan]; GY += list(np.full(m, c[1] + val)) + [np.nan]
+            GX += list(c[0] + t) + [np.nan]
+            GY += list(np.full(m, c[1] + val)) + [np.nan]
         for val in g:
-            GX += list(np.full(m, c[0] + val)) + [np.nan]; GY += list(c[1] + t) + [np.nan]
+            GX += list(np.full(m, c[0] + val)) + [np.nan]
+            GY += list(c[1] + t) + [np.nan]
         GX, GY = np.array(GX), np.array(GY)
         GZ = surf(GX, GY)
-        zb = surf(np.array([b.position[0] for b in bodies]), np.array([b.position[1] for b in bodies]))
+        zb = surf(
+            np.array([b.position[0] for b in bodies]),
+            np.array([b.position[1] for b in bodies]),
+        )
         zmin = float(min(np.nanmin(GZ), zb.min()))
-        fig.add_trace(go.Scatter3d(x=np.round((GX - c[0]) / u, nd), y=np.round((GY - c[1]) / u, nd),
-                                   z=np.round(GZ / u, nd), mode="lines", meta="grid", showlegend=False,
-                                   hoverinfo="skip", line=dict(color=dark["grid"], width=1),
-                                   visible=(vi == 0)))
+        fig.add_trace(
+            go.Scatter3d(
+                x=np.round((GX - c[0]) / u, nd),
+                y=np.round((GY - c[1]) / u, nd),
+                z=np.round(GZ / u, nd),
+                mode="lines",
+                meta="grid",
+                showlegend=False,
+                hoverinfo="skip",
+                line=dict(color=dark["grid"], width=1),
+                visible=(vi == 0),
+            )
+        )
         owners.append(vi)
 
         # órbitas
-        for name, pts in (orbits or []):
+        for name, pts in orbits or []:
             pts = np.asarray(pts, float)
             ok = inside(pts)
             if not ok.any():
@@ -252,10 +326,19 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
             X = np.where(ok, (pts[:, 0] - c[0]) / u, np.nan)
             Y = np.where(ok, (pts[:, 1] - c[1]) / u, np.nan)
             Z = np.where(ok, surf(pts[:, 0], pts[:, 1]) / u, np.nan)
-            fig.add_trace(go.Scatter3d(x=np.round(X, nd), y=np.round(Y, nd), z=np.round(Z, nd), mode="lines",
-                                       meta="orbit", showlegend=False, hoverinfo="skip",
-                                       line=dict(color=_rgba(colors.get(name, "#94a3b8"), 0.65), width=2),
-                                       visible=(vi == 0)))
+            fig.add_trace(
+                go.Scatter3d(
+                    x=np.round(X, nd),
+                    y=np.round(Y, nd),
+                    z=np.round(Z, nd),
+                    mode="lines",
+                    meta="orbit",
+                    showlegend=False,
+                    hoverinfo="skip",
+                    line=dict(color=_rgba(colors.get(name, "#94a3b8"), 0.65), width=2),
+                    visible=(vi == 0),
+                )
+            )
             owners.append(vi)
 
         # rayos: se reconstruye el tramo visible integrando las DIRECCIONES (precisas) y se exagera
@@ -265,8 +348,8 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
             if len(idx) < 8:
                 continue
             i0, i1 = idx[0], idx[-1]
-            ds = np.diff(sg[i0:i1 + 1])
-            d = dirs[i0:i1 + 1]
+            ds = np.diff(sg[i0 : i1 + 1])
+            d = dirs[i0 : i1 + 1]
             seg_len = float(ds.sum())
             if seg_len < 0.4 * 2 * h:
                 continue
@@ -284,9 +367,18 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
             Z = surf(show[:, 0], show[:, 1])
             R = rel(show)
             lab = f"{r.name} (curvatura ×{K:.3g})" + (f" — IMPACTA {r.hit}" if r.hit else "")
-            fig.add_trace(go.Scatter3d(x=R[:, 0], y=R[:, 1], z=np.round(Z / u, nd), mode="lines",
-                                       name=lab, meta="ray", line=dict(color=dark["ray"], width=5),
-                                       visible=(vi == 0)))
+            fig.add_trace(
+                go.Scatter3d(
+                    x=R[:, 0],
+                    y=R[:, 1],
+                    z=np.round(Z / u, nd),
+                    mode="lines",
+                    name=lab,
+                    meta="ray",
+                    line=dict(color=dark["ray"], width=5),
+                    visible=(vi == 0),
+                )
+            )
             owners.append(vi)
 
         # cuerpos
@@ -295,13 +387,27 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
             if not inside(P, 1.05)[0]:
                 continue
             z = float(surf(np.array([b.position[0]]), np.array([b.position[1]]))[0]) / u
-            fig.add_trace(go.Scatter3d(
-                x=[round(float((b.position[0] - c[0]) / u), nd)], y=[round(float((b.position[1] - c[1]) / u), nd)],
-                z=[round(z, nd)], mode="markers+text", text=[b.name], textposition="top center", name=b.name,
-                meta="body", hovertext=f"{b.name} — {b.mass_kg:.4g} kg", hoverinfo="text",
-                textfont=dict(color=dark["text"], size=12),
-                marker=dict(size=sizes[b.name], color=colors[b.name], line=dict(color=dark["outline"], width=1.5)),
-                visible=(vi == 0)))
+            fig.add_trace(
+                go.Scatter3d(
+                    x=[round(float((b.position[0] - c[0]) / u), nd)],
+                    y=[round(float((b.position[1] - c[1]) / u), nd)],
+                    z=[round(z, nd)],
+                    mode="markers+text",
+                    text=[b.name],
+                    textposition="top center",
+                    name=b.name,
+                    meta="body",
+                    hovertext=f"{b.name} — {b.mass_kg:.4g} kg",
+                    hoverinfo="text",
+                    textfont=dict(color=dark["text"], size=12),
+                    marker=dict(
+                        size=sizes[b.name],
+                        color=colors[b.name],
+                        line=dict(color=dark["outline"], width=1.5),
+                    ),
+                    visible=(vi == 0),
+                )
+            )
             owners.append(vi)
         view_meta.append({"u": u, "ulabel": ulabel, "h": h / u, "zmin": zmin / u, "L": L / u})
 
@@ -312,39 +418,92 @@ def build_scene_map(scene, results, exaggerate="auto", out_html=None, title="rel
         zmin, zmax = 1.15 * vm["zmin"], 0.12 * vm["L"]
         asp = float(np.clip((zmax - zmin) / (2 * vm["h"]), 0.18, 0.6))
         cname = "el origen" if np.allclose(v["center"], views[0]["center"]) else v["name"].replace("Centrado en ", "")
-        buttons.append(dict(label=v["name"], method="update", args=[
-            {"visible": vis},
-            {"title.text": f"{title} — {v['name']}",
-             "scene.xaxis.range": [-vm["h"], vm["h"]], "scene.yaxis.range": [-vm["h"], vm["h"]],
-             "scene.zaxis.range": [zmin, zmax],
-             "scene.xaxis.title.text": f"Δx ({vm['ulabel']})", "scene.yaxis.title.text": f"Δy ({vm['ulabel']})",
-             "scene.zaxis.title.text": "profundidad (ilustrativa)",
-             "scene.aspectratio": dict(x=1, y=1, z=asp),
-             "scene.camera": dict(eye=dict(x=1.5, y=-1.6, z=0.9))}]))
+        buttons.append(
+            dict(
+                label=v["name"],
+                method="update",
+                args=[
+                    {"visible": vis},
+                    {
+                        "title.text": f"{title} — {v['name']}",
+                        "scene.xaxis.range": [-vm["h"], vm["h"]],
+                        "scene.yaxis.range": [-vm["h"], vm["h"]],
+                        "scene.zaxis.range": [zmin, zmax],
+                        "scene.xaxis.title.text": f"Δx ({vm['ulabel']})",
+                        "scene.yaxis.title.text": f"Δy ({vm['ulabel']})",
+                        "scene.zaxis.title.text": "profundidad (ilustrativa)",
+                        "scene.aspectratio": dict(x=1, y=1, z=asp),
+                        "scene.camera": dict(eye=dict(x=1.5, y=-1.6, z=0.9)),
+                    },
+                ],
+            )
+        )
     v0, m0 = views[0], view_meta[0]
     z0min, z0max = 1.15 * m0["zmin"], 0.12 * m0["L"]
     asp0 = float(np.clip((z0max - z0min) / (2 * m0["h"]), 0.18, 0.6))
-    axis = dict(showbackground=False, color=dark["axis"], gridcolor=dark["grid"], zerolinecolor=dark["grid"])
+    axis = dict(
+        showbackground=False,
+        color=dark["axis"],
+        gridcolor=dark["grid"],
+        zerolinecolor=dark["grid"],
+    )
     fig.update_layout(
         title=dict(text=f"{title} — {v0['name']}", x=0.5, font=dict(color=dark["text"])),
-        paper_bgcolor=dark["bg"], plot_bgcolor=dark["bg"], font=dict(color=dark["text"]),
+        paper_bgcolor=dark["bg"],
+        plot_bgcolor=dark["bg"],
+        font=dict(color=dark["text"]),
         margin=dict(l=0, r=0, t=60, b=0),
         legend=dict(bgcolor="rgba(0,0,0,0)", x=0.01, y=0.85, xanchor="left"),
-        updatemenus=[dict(type="dropdown", buttons=buttons, active=0, x=0.01, y=0.935, xanchor="left",
-                          yanchor="top", bgcolor=dark["menu"], bordercolor=dark["border"],
-                          showactive=False, font=dict(color=dark["text"]))],
-        annotations=[dict(text="Malla ilustrativa (profundidad ~ log masa) · curvatura de los rayos exagerada ×K · "
-                               "rueda = zoom, arrastrar = girar, menú = cambiar de vista",
-                          x=0.5, y=0.0, xref="paper", yref="paper", showarrow=False,
-                          font=dict(color=dark["axis"], size=11))],
-        scene=dict(bgcolor=dark["bg"], aspectmode="manual", aspectratio=dict(x=1, y=1, z=asp0),
-                   xaxis=dict(range=[-m0["h"], m0["h"]], title=f"Δx ({m0['ulabel']})", **axis),
-                   yaxis=dict(range=[-m0["h"], m0["h"]], title=f"Δy ({m0['ulabel']})", **axis),
-                   zaxis=dict(range=[z0min, z0max], title="profundidad (ilustrativa)", showticklabels=False, **axis),
-                   camera=dict(eye=dict(x=1.5, y=-1.6, z=0.9))))
+        updatemenus=[
+            dict(
+                type="dropdown",
+                buttons=buttons,
+                active=0,
+                x=0.01,
+                y=0.935,
+                xanchor="left",
+                yanchor="top",
+                bgcolor=dark["menu"],
+                bordercolor=dark["border"],
+                showactive=False,
+                font=dict(color=dark["text"]),
+            )
+        ],
+        annotations=[
+            dict(
+                text="Malla ilustrativa (profundidad ~ log masa) · curvatura de los rayos exagerada ×K · "
+                "rueda = zoom, arrastrar = girar, menú = cambiar de vista",
+                x=0.5,
+                y=0.0,
+                xref="paper",
+                yref="paper",
+                showarrow=False,
+                font=dict(color=dark["axis"], size=11),
+            )
+        ],
+        scene=dict(
+            bgcolor=dark["bg"],
+            aspectmode="manual",
+            aspectratio=dict(x=1, y=1, z=asp0),
+            xaxis=dict(range=[-m0["h"], m0["h"]], title=f"Δx ({m0['ulabel']})", **axis),
+            yaxis=dict(range=[-m0["h"], m0["h"]], title=f"Δy ({m0['ulabel']})", **axis),
+            zaxis=dict(
+                range=[z0min, z0max],
+                title="profundidad (ilustrativa)",
+                showticklabels=False,
+                **axis,
+            ),
+            camera=dict(eye=dict(x=1.5, y=-1.6, z=0.9)),
+        ),
+    )
     if out_html:
-        js = (_JS.replace("__THEMES__", json.dumps(THEMES))
-                 .replace("__LAYOUT__", json.dumps({k: _theme_layout(k) for k in THEMES})))
-        fig.write_html(out_html, include_plotlyjs=True if offline else "cdn", post_script=js,
-                       config={"scrollZoom": True, "displaylogo": False})
+        js = _JS.replace("__THEMES__", json.dumps(THEMES)).replace(
+            "__LAYOUT__", json.dumps({k: _theme_layout(k) for k in THEMES})
+        )
+        fig.write_html(
+            out_html,
+            include_plotlyjs=True if offline else "cdn",
+            post_script=js,
+            config={"scrollZoom": True, "displaylogo": False},
+        )
     return fig

@@ -3,8 +3,16 @@
 import numpy as np
 import pytest
 
-from relmap import (Body, integrate_null, load_scene, monte_carlo, parse_scene,
-                    potential, time_dilation, trace_ray)
+from relmap import (
+    Body,
+    integrate_null,
+    load_scene,
+    monte_carlo,
+    parse_scene,
+    potential,
+    time_dilation,
+    trace_ray,
+)
 from relmap.scene import Ray
 
 M_SUN, R_SUN = 1.98847e30, 6.957e8
@@ -15,7 +23,8 @@ def sun():
 
 
 def point(m_geo, pos, name="p"):
-    from relmap.units import G, C
+    from relmap.units import C, G
+
     return Body(name, m_geo * C**2 / G, np.array(pos, float))
 
 
@@ -35,14 +44,18 @@ def test_simetria_dos_masas_cancela():
     D = 1e4
     bodies = [point(1.0, [0, D, 0], "a"), point(1.0, [0, -D, 0], "b")]
     r = trace_ray(bodies, [-1e7, 0, 0], [1, 0, 0], 2e7)
-    assert r.deflection_rad < 1e-9           # una sola masa daría ~4e-4
+    assert r.deflection_rad < 1e-9  # una sola masa daría ~4e-4
 
 
 def test_superposicion_lejana():
     M, b, D = 1.0, 1e4, 1e9
     one = trace_ray([point(M, [0, 0, 0])], [-1e7, b, 0], [1, 0, 0], 2e7).deflection_rad
-    two = trace_ray([point(M, [0, 0, 0]), point(M, [0, 0, D], "lejana")],
-                    [-1e7, b, 0], [1, 0, 0], 2e7).deflection_rad
+    two = trace_ray(
+        [point(M, [0, 0, 0]), point(M, [0, 0, D], "lejana")],
+        [-1e7, b, 0],
+        [1, 0, 0],
+        2e7,
+    ).deflection_rad
     assert two == pytest.approx(one, rel=1e-3)
 
 
@@ -72,11 +85,10 @@ def test_impacto_detectado():
 
 def test_montecarlo_propaga_incertidumbre_de_masa():
     b = Body("p", 1.0e30, np.zeros(3), mass_sigma_rel=0.10)
-    from relmap.units import G, C
     ray = Ray("r", np.array([-1e12, 1e9, 0]), np.array([1.0, 0, 0]), 2e12)
     s = monte_carlo([b], ray, n=80, seed=3)
     d = s.deflection_arcsec
-    assert d["std"] / d["mean"] == pytest.approx(0.10, rel=0.4)   # deflexión ∝ masa
+    assert d["std"] / d["mean"] == pytest.approx(0.10, rel=0.4)  # deflexión ∝ masa
 
 
 def test_montecarlo_sin_incertidumbre_es_determinista():
@@ -88,22 +100,27 @@ def test_montecarlo_sin_incertidumbre_es_determinista():
 
 def test_carga_yaml(tmp_path):
     f = tmp_path / "e.yaml"
-    f.write_text("unit: au\nbodies:\n  - {name: Sol, mass: 1, mass_unit: msun, position: [0,0,0]}\n"
-                 "rays:\n  - {name: r, origin: [-1,0.1,0], direction: [2,0,0], length: 2}\n",
-                 encoding="utf-8")
+    f.write_text(
+        "unit: au\nbodies:\n  - {name: Sol, mass: 1, mass_unit: msun, position: [0,0,0]}\n"
+        "rays:\n  - {name: r, origin: [-1,0.1,0], direction: [2,0,0], length: 2}\n",
+        encoding="utf-8",
+    )
     sc = load_scene(f)
     assert sc.bodies[0].mass_kg == pytest.approx(M_SUN)
     assert sc.rays[0].origin[0] == pytest.approx(-1.495978707e11)
     assert np.allclose(sc.rays[0].direction, [1, 0, 0])
 
 
-@pytest.mark.parametrize("bad", [
-    {"unit": "parsecs", "bodies": []},
-    {"bodies": [{"mass": -1, "position": [0, 0, 0]}]},
-    {"bodies": [{"mass": 1, "mass_unit": "stones", "position": [0, 0, 0]}]},
-    {"bodies": [{"mass": 1, "position": [0, 0]}]},
-    {"rays": [{"origin": [0, 0, 0], "direction": [0, 0, 0], "length": 1}]},
-])
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"unit": "parsecs", "bodies": []},
+        {"bodies": [{"mass": -1, "position": [0, 0, 0]}]},
+        {"bodies": [{"mass": 1, "mass_unit": "stones", "position": [0, 0, 0]}]},
+        {"bodies": [{"mass": 1, "position": [0, 0]}]},
+        {"rays": [{"origin": [0, 0, 0], "direction": [0, 0, 0], "length": 1}]},
+    ],
+)
 def test_escena_invalida(bad):
     with pytest.raises(ValueError):
         parse_scene(bad)

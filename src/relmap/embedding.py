@@ -4,6 +4,7 @@
 
 z(r) = 2 sqrt(2M (r - 2M)) para r >= 2M (corte ecuatorial de Schwarzschild).
 """
+
 from __future__ import annotations
 
 import numpy as np

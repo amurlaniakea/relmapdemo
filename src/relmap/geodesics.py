@@ -4,6 +4,7 @@
 
 Coordenadas (t, r, phi), parámetro afín lambda (tiempo propio para geodésicas temporales).
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -21,8 +22,15 @@ def _rhs(_lam, y, M):
 
 def _run(y0, M, lam_max, events=None, rtol=1e-12, atol=1e-12, dense=False):
     return solve_ivp(
-        _rhs, (0.0, lam_max), y0, args=(M,), method="DOP853",
-        rtol=rtol, atol=atol, events=events, dense_output=dense,
+        _rhs,
+        (0.0, lam_max),
+        y0,
+        args=(M,),
+        method="DOP853",
+        rtol=rtol,
+        atol=atol,
+        events=events,
+        dense_output=dense,
     )
 
 
@@ -41,11 +49,13 @@ def integrate_null(M: float, r0: float, b: float, lam_max: float | None = None):
 
     def escaped(_l, y, _M):
         return y[1] - r0 * 1.0000001
+
     escaped.terminal = True
     escaped.direction = 1
 
     def captured(_l, y, _M):
         return y[1] - 2.0 * M * 1.0001
+
     captured.terminal = True
     captured.direction = -1
 
@@ -59,8 +69,12 @@ def integrate_null(M: float, r0: float, b: float, lam_max: float | None = None):
 
 def orbit_energy_momentum(M: float, r_p: float, r_a: float):
     """E y L (por unidad de masa) de una órbita ligada con periastro r_p y apoastro r_a."""
-    A = np.array([[-1.0, 1.0 / r_p**2 - 2.0 * M / r_p**3],
-                  [-1.0, 1.0 / r_a**2 - 2.0 * M / r_a**3]])
+    A = np.array(
+        [
+            [-1.0, 1.0 / r_p**2 - 2.0 * M / r_p**3],
+            [-1.0, 1.0 / r_a**2 - 2.0 * M / r_a**3],
+        ]
+    )
     rhs = np.array([2.0 * M / r_p, 2.0 * M / r_a])
     e2m1, L2 = np.linalg.solve(A, rhs)
     return float(np.sqrt(1.0 + e2m1)), float(np.sqrt(L2))
@@ -76,6 +90,7 @@ def integrate_timelike(M: float, r_p: float, r_a: float, n_orbits: int = 3):
 
     def peri(_l, y, _M):
         return y[4]
+
     peri.direction = 1
 
     sol = _run(y0, M, (n_orbits + 0.5) * period * 1.3, events=[peri])

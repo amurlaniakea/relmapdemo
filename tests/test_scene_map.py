@@ -25,11 +25,12 @@ def solar():
 def test_amarillo_solo_para_el_sol(solar):
     cols = body_colors(solar[0].bodies)
     assert [n for n, c in cols.items() if c.lower() == SUN_YELLOW.lower()] == ["Sol"]
-    assert len(set(cols.values())) == len(cols)          # todos distintos
+    assert len(set(cols.values())) == len(cols)  # todos distintos
 
 
 def test_color_explicito_y_fallback_sin_amarillo():
     from relmap.scene import Body
+
     bs = [Body(f"x{i}", 1e24, np.array([i, 0, 0.0])) for i in range(12)]
     cols = body_colors(bs)
     assert SUN_YELLOW.lower() not in [c.lower() for c in cols.values()]
@@ -44,7 +45,7 @@ def test_vistas_incluyen_interior_y_cada_cuerpo(solar):
     for b in scene.bodies:
         assert f"Centrado en {b.name}" in names
     interior = [v for v in views if v["name"] == "Hasta Marte"]
-    assert interior and interior[0]["h"] < 3 * 1.495978707e11   # zoom real a la zona interior
+    assert interior and interior[0]["h"] < 3 * 1.495978707e11  # zoom real a la zona interior
 
 
 def test_cada_vista_tiene_trazas_propias_y_la_primera_visible(solar):

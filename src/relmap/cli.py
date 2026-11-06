@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 # Copyright (C) 2026 Pedro Sordo Martínez
 """Línea de comandos:  relmap escena.yaml [--mc N] [--out mapa.html]"""
+
 from __future__ import annotations
 
 import argparse
@@ -9,7 +10,7 @@ import sys
 from .scene import load_scene
 from .scene_map import build_scene_map
 from .uncertainty import monte_carlo
-from .weakfield import trace_ray, time_dilation
+from .weakfield import time_dilation, trace_ray
 
 
 def main(argv=None) -> int:
@@ -18,8 +19,16 @@ def main(argv=None) -> int:
     ap.add_argument("--mc", type=int, default=0, help="muestras Monte Carlo (0 = sin incertidumbre)")
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--out", default="mapa.html")
-    ap.add_argument("--exaggerate", default="auto", help="factor de exageración de desviaciones o 'auto'")
-    ap.add_argument("--offline", action="store_true", help="incrusta plotly.js (funciona sin internet)")
+    ap.add_argument(
+        "--exaggerate",
+        default="auto",
+        help="factor de exageración de desviaciones o 'auto'",
+    )
+    ap.add_argument(
+        "--offline",
+        action="store_true",
+        help="incrusta plotly.js (funciona sin internet)",
+    )
     a = ap.parse_args(argv)
 
     scene = load_scene(a.scene)
@@ -34,13 +43,15 @@ def main(argv=None) -> int:
         if r.hit:
             print(f"[{ray.name}] IMPACTA contra {r.hit}")
             continue
-        print(f"[{ray.name}] deflexión = {r.deflection_arcsec:.6g}\"   retraso = {r.delay_s*1e6:.6g} µs")
+        print(f'[{ray.name}] deflexión = {r.deflection_arcsec:.6g}"   retraso = {r.delay_s * 1e6:.6g} µs')
         if a.mc > 0:
             s = monte_carlo(scene.bodies, ray, n=a.mc, seed=a.seed)
             d, t = s.deflection_arcsec, s.delay_s
-            print(f"    MC n={s.n}: deflexión {d['p50']:.6g}\" (90%: {d['p5']:.6g}–{d['p95']:.6g}, σ={d['std']:.3g})"
-                  f"; retraso {t['p50']*1e6:.6g} µs (90%: {t['p5']*1e6:.6g}–{t['p95']*1e6:.6g})"
-                  + (f"; {s.hits} impactos" if s.hits else ""))
+            print(
+                f'    MC n={s.n}: deflexión {d["p50"]:.6g}" (90%: {d["p5"]:.6g}–{d["p95"]:.6g}, σ={d["std"]:.3g})'
+                f"; retraso {t['p50'] * 1e6:.6g} µs (90%: {t['p5'] * 1e6:.6g}–{t['p95'] * 1e6:.6g})"
+                + (f"; {s.hits} impactos" if s.hits else "")
+            )
     print()
     for b in scene.bodies:
         if b.radius > 0:

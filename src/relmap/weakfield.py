@@ -6,6 +6,7 @@ Métrica isótropa: ds^2 = -(1+2Phi) dt^2 + (1-2Phi) dx^2, con Phi = -sum_i m_i 
 (m_i = G M_i / c^2 en metros, G = c = 1). Válida para |Phi| << 1, cuerpos lentos.
 La luz se propaga como en un medio con índice n = 1 - 2 Phi:  d/ds (n dx/ds) = grad n.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -58,7 +59,7 @@ class RayResult:
     sol: object
     s_end: float
     deflection_rad: float
-    delay_m: float          # integral de (n-1) ds (retraso tipo Shapiro) en metros
+    delay_m: float  # integral de (n-1) ds (retraso tipo Shapiro) en metros
     hit: str | None
 
     @property
@@ -89,14 +90,22 @@ def trace_ray(bodies, origin, direction, length, name="rayo", rtol=1e-12):
     def make_event(b):
         def ev(_s, y):
             return float(np.linalg.norm(y[:3] - b.position) - b.radius)
+
         ev.terminal = True
         ev.direction = -1
         return ev
 
     solid = [b for b in bodies if b.radius > 0]
-    sol = solve_ivp(rhs, (0.0, length), y0, method="DOP853", rtol=rtol,
-                    atol=np.array([1e-3] * 3 + [1e-15] * 3 + [1e-6]),
-                    events=[make_event(b) for b in solid] or None, dense_output=True)
+    sol = solve_ivp(
+        rhs,
+        (0.0, length),
+        y0,
+        method="DOP853",
+        rtol=rtol,
+        atol=np.array([1e-3] * 3 + [1e-15] * 3 + [1e-6]),
+        events=[make_event(b) for b in solid] or None,
+        dense_output=True,
+    )
     hit = None
     for b, te in zip(solid, sol.t_events if solid else []):
         if len(te):
@@ -105,6 +114,11 @@ def trace_ray(bodies, origin, direction, length, name="rayo", rtol=1e-12):
     pf = sol.y[3:6, -1]
     cross = np.linalg.norm(np.cross(d0, pf))
     defl = float(np.arctan2(cross, float(np.dot(d0, pf))))
-    return RayResult(name=name, sol=sol, s_end=s_end,
-                     deflection_rad=float("nan") if hit else defl,
-                     delay_m=float(sol.y[6, -1]), hit=hit)
+    return RayResult(
+        name=name,
+        sol=sol,
+        s_end=s_end,
+        deflection_rad=float("nan") if hit else defl,
+        delay_m=float(sol.y[6, -1]),
+        hit=hit,
+    )

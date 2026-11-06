@@ -7,8 +7,16 @@ import pytest
 
 from relmap import parse_scene, scene_to_dict, solar_system_bodies, trace_ray
 from relmap.scene import Scene
-from relmap.solar_system import (AU, default_rays, julian_date, positions, solve_kepler,
-                                 _EL, _helio, _PHYS)
+from relmap.solar_system import (
+    _EL,
+    _PHYS,
+    AU,
+    _helio,
+    default_rays,
+    julian_date,
+    positions,
+    solve_kepler,
+)
 
 UTC = timezone.utc
 
@@ -42,6 +50,7 @@ def test_tierra_afelio_julio_2026():
 @pytest.mark.parametrize("date", ["1900-06-01", "2000-01-01", "2026-11-05", "2049-03-03"])
 def test_distancia_dentro_de_apsides(key, date):
     from relmap.solar_system import julian_date as jd
+
     a, e = _EL[key][0][0], _EL[key][0][1]
     r = np.linalg.norm(_helio(key, jd(dt(date)))) / AU
     assert a * (1 - e) * 0.995 <= r <= a * (1 + e) * 1.005
@@ -60,7 +69,7 @@ def test_luna_y_baricentro_tierra_luna():
     mm, me = _PHYS["luna"][1], _PHYS["tierra"][1]
     bary = (me * p["tierra"] + mm * p["luna"]) / (me + mm)
     emb = _helio("embary", julian_date(dt("2026-11-05")))
-    assert np.linalg.norm(bary - emb) < 1.0           # metros: coincide con el EMB de JPL
+    assert np.linalg.norm(bary - emb) < 1.0  # metros: coincide con el EMB de JPL
     assert np.linalg.norm(p["tierra"] - emb) == pytest.approx(4.67e6, rel=0.01)
 
 
@@ -68,7 +77,7 @@ def test_cuerpos_completos_y_sin_solapes():
     bodies = solar_system_bodies(dt("2026-11-05"))
     assert [b.name for b in bodies][:2] == ["Sol", "Mercurio"] and len(bodies) == 10
     for i, a in enumerate(bodies):
-        for b in bodies[i + 1:]:
+        for b in bodies[i + 1 :]:
             assert np.linalg.norm(a.position - b.position) > a.radius + b.radius
 
 
@@ -82,7 +91,7 @@ def test_rasante_sol_deflexion_875():
     bodies = solar_system_bodies(dt("2026-11-05"))
     ray = [r for r in default_rays(bodies) if "Sol" in r.name][0]
     res = trace_ray(bodies, ray.origin, ray.direction, ray.length)
-    assert res.deflection_arcsec == pytest.approx(1.7505 / 2, rel=0.03)    # 4M/(2R)
+    assert res.deflection_arcsec == pytest.approx(1.7505 / 2, rel=0.03)  # 4M/(2R)
 
 
 def test_rasante_jupiter_solo_coincide_con_formula():
