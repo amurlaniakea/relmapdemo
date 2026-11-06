@@ -12,7 +12,7 @@ relmap = "relmap.cli:main"
 relmap-solar = "relmap.solar_cli:main"
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = ["pytest", "ruff"]
 
 [build-system]
 requires = ["setuptools>=68"]
