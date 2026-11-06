@@ -20,3 +20,34 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+ignore = [
+    "B007",  # loop control variable not used
+    "B023",  # function definition does not bind loop variable
+    "B905",  # zip() without explicit strict=
+    "C408",  # unnecessary dict() call
+    "E501",  # line too long
+    "E741",  # ambiguous variable name
+    "F841",  # local variable assigned but never used
+    "PLC0415", # import should be at top-level
+    "PLC2401", # function name contains non-ASCII
+    "PLR0912", # too many branches
+    "PLR0913", # too many arguments in function definition
+    "PLR0915", # too many statements
+    "PLR0917", # too many positional arguments
+    "PLR2004", # magic value used in comparison
+    "PLW2901", # for loop variable overwritten
+    "PTH123",  # open() should be Path.open()
+    "RUF015",  # prefer next() over single element slice
+    "RUF059",  # unpacked variable never used
+    "SIM108",  # use ternary operator
+    "SIM300",  # Yoda condition
+    "TRY003",  # avoid specifying long messages outside exception class
+    "TRY004",  # prefer TypeError for invalid type
+]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM", "TID", "ARG", "PTH", "ERA", "PL", "TRY"]
