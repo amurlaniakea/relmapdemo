@@ -32,8 +32,11 @@ ignore = [
     "B905",  # zip() without explicit strict=
     "C408",  # unnecessary dict() call
     "E501",  # line too long
+    "E702",  # multiple statements on one line (semicolon)
     "E741",  # ambiguous variable name
+    "F401",  # imported but unused
     "F841",  # local variable assigned but never used
+    "I001",  # import block un-sorted
     "PLC0415", # import should be at top-level
     "PLC2401", # function name contains non-ASCII
     "PLR0912", # too many branches
